@@ -13,8 +13,8 @@ use Illuminate\Container\Container;
 use Illuminate\Support\Facades\Facade;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Filesystem\Filesystem;
-use Illuminate\Cache\CacheServiceProvider;
 use Illuminate\Contracts\Foundation\Application as ApplicationContract;
+use Illuminate\Support\Facades\Config;
 
 /**
  * Bootstraps a minimal Illuminate Container.
@@ -125,6 +125,19 @@ class Laravel
      */
     function bootstrapConfig(App $app)
     {
+        if (!function_exists('config')) {
+            /**
+             * Emulates Laravels config method
+             *
+             * @param string $key
+             * @return mixed
+             */
+            function config($key, $default = null)
+            {
+                return Config::get($key, $default);
+            }
+        }
+
         // This represents what would usually be the app configuration
         $app->singleton('config', fn () => new Repository($this->config));
     }
