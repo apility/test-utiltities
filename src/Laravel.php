@@ -8,6 +8,7 @@ use Dotenv\Dotenv;
 
 use Illuminate\Contracts\Container\Container as App;
 
+use Illuminate\Config\Repository;
 use Illuminate\Container\Container;
 use Illuminate\Support\Facades\Facade;
 use Illuminate\Support\ServiceProvider;
@@ -26,7 +27,7 @@ class Laravel
 
     protected $providers;
 
-    protected $config;
+    protected $config = [];
 
     protected $loadDotenv = false;
 
@@ -125,11 +126,7 @@ class Laravel
     function bootstrapConfig(App $app)
     {
         // This represents what would usually be the app configuration
-        $app->bind('config', fn () => $this->config);
-
-        if (!in_array(CacheServiceProvider::class, $this->providers)) {
-            array_unshift($this->providers, CacheServiceProvider::class);
-        }
+        $app->singleton('config', fn () => new Repository($this->config));
     }
 
     /**

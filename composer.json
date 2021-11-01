@@ -13,7 +13,8 @@
         "illuminate/container": "^8.68",
         "larapack/dd": "^1.1",
         "vlucas/phpdotenv": "^5.3",
-        "illuminate/filesystem": "^8.68"
+        "illuminate/filesystem": "^8.68",
+        "illuminate/config": "^8.68"
     },
     "autoload": {
         "psr-4": {
