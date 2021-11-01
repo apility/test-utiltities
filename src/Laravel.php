@@ -29,8 +29,6 @@ class Laravel
 
     protected $config = [];
 
-    protected $loadDotenv = false;
-
     /**
      * @param string|null $root
      * @param array $providers
@@ -57,9 +55,9 @@ class Laravel
      * @param bool $withDotenv
      * @return static
      */
-    public function withDotenv(bool $withDotenv = true): self
+    public function withDotenv(?string $path = null): self
     {
-        $this->loadDotenv = $withDotenv;
+        $this->bootstrapDotenv($path);
         return $this;
     }
 
@@ -99,7 +97,7 @@ class Laravel
     /**
      * @return void
      */
-    protected function bootstrapDotenv()
+    protected function bootstrapDotenv(?string $path = null)
     {
         if (!function_exists('env')) {
             /**
@@ -115,7 +113,7 @@ class Laravel
         }
 
         // Load .env file
-        $dotenv = Dotenv::createImmutable($this->root);
+        $dotenv = Dotenv::createImmutable($path ?? $this->root);
         $dotenv->load();
     }
 
@@ -183,10 +181,6 @@ class Laravel
      */
     public function run(?Closure $callback = null): App
     {
-        if ($this->loadDotenv) {
-            $this->bootstrapDotenv();
-        }
-
         // This represents what would usually be the full Laravel app instance
         $app = new Container;
 
