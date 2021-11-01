@@ -1,0 +1,26 @@
+{
+    "name": "apility/test-utilities",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Thomas Alrek",
+            "email": "thomas@apility.no"
+        }
+    ],
+    "require": {
+        "illuminate/support": "^8.68",
+        "illuminate/container": "^8.68",
+        "larapack/dd": "^1.1",
+        "vlucas/phpdotenv": "^5.3",
+        "illuminate/filesystem": "^8.68"
+    },
+    "autoload": {
+        "psr-4": {
+            "Apility\\Testing\\": "src/"
+        }
+    },
+    "require-dev": {
+        "illuminate/cache": "^8.68"
+    }
+}
