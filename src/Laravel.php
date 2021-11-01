@@ -30,7 +30,10 @@ class Laravel
     protected $root;
 
     /** @var array */
-    protected $providers;
+    protected $earlyProviders = [];
+
+    /** @var array */
+    protected $providers = [];
 
     /** @var array */
     protected $config = [];
@@ -40,11 +43,11 @@ class Laravel
      * @param array $providers
      * @param array $config
      */
-    protected function __construct($root = null, $providers = [], $config = [])
+    protected function __construct()
     {
-        $this->root = $root;
-        $this->providers = $providers;
-        $this->config = $config;
+        $this->earlyProviders = [];
+        $this->lateProviders = [];
+        $this->config = [];
     }
 
     /**
@@ -68,6 +71,40 @@ class Laravel
     }
 
     /**
+     * @param string $provider
+     * @return static
+     */
+    public function withEarlyProvider(string $provider): self
+    {
+        $this->earlyProviders[] = $provider;
+        return $this;
+    }
+
+    /**
+     * @param array $providers
+     * @return static
+     */
+    public function withEarlyProviders(array $providers): self
+    {
+        foreach ($providers as $provider) {
+            $this->withEarlyProvider($provider);
+        }
+
+        return $this;
+    }
+
+
+    /**
+     * @param string $provider
+     * @return static
+     */
+    public function withProvider(string $provider): self
+    {
+        $this->lateProviders[] = $provider;
+        return $this;
+    }
+
+    /**
      * @param array $providers
      * @return static
      */
@@ -77,24 +114,6 @@ class Laravel
             $this->withProvider($provider);
         }
 
-        return $this;
-    }
-
-    public function bootProvider(string $provider): self
-    {
-        $provider = $this->registerServiceProvider($provider);
-        $this->bootServiceProvider($provider);
-
-        return $this;
-    }
-
-    /**
-     * @param string $provider
-     * @return static
-     */
-    public function withProvider(string $provider): self
-    {
-        $this->providers[] = $provider;
         return $this;
     }
 
@@ -178,7 +197,7 @@ class Laravel
      * @param ServiceProvider $provider
      * @return void
      */
-    public function bootServiceProvider(ServiceProvider $provider)
+    protected function bootServiceProvider(ServiceProvider $provider)
     {
         if (method_exists($provider, 'boot')) {
             $this->app->call([$provider, 'boot']);
@@ -190,13 +209,13 @@ class Laravel
     /**
      * @return void
      */
-    public function bootstrapServiceProviders()
+    protected function bootstrapServiceProviders(array $providers)
     {
-        foreach ($this->providers as $key => $provider) {
-            $this->providers[$key] = $this->registerServiceProvider($provider);
+        foreach ($providers as $key => $provider) {
+            $providers[$key] = $this->registerServiceProvider($provider);
         }
 
-        foreach ($this->providers as $provider) {
+        foreach ($providers as $provider) {
             $this->bootServiceProvider($provider);
         }
     }
@@ -214,7 +233,8 @@ class Laravel
 
         $this->bootstrapFacades();
         $this->bootstrapConfig();
-        $this->bootstrapServiceProviders();
+        $this->bootstrapServiceProviders($this->earlyProviders);
+        $this->bootstrapServiceProviders($this->lateProviders);
 
         if ($callback) {
             return $callback($this->app);
@@ -224,13 +244,10 @@ class Laravel
     }
 
     /**
-     * @param string $root directory
-     * @param array $providers Service providers to register.
-     * @param array $config App configuration
      * @return static
      */
-    public static function make($root = null, $providers = [], $config = []): self
+    public static function createApplication(): self
     {
-        return new static($root, $providers, $config);
+        return new static();
     }
 }
