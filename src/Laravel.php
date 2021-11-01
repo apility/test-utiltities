@@ -23,10 +23,16 @@ use Illuminate\Support\Facades\Config;
  */
 class Laravel
 {
+    /** @var App */
+    protected $app;
+
+    /** @var string */
     protected $root;
 
+    /** @var array */
     protected $providers;
 
+    /** @var array */
     protected $config = [];
 
     /**
@@ -70,6 +76,14 @@ class Laravel
         foreach ($providers as $provider) {
             $this->withProvider($provider);
         }
+
+        return $this;
+    }
+
+    public function bootProvider(string $provider): self
+    {
+        $provider = $this->registerServiceProvider($provider);
+        $this->bootServiceProvider($provider);
 
         return $this;
     }
@@ -118,10 +132,9 @@ class Laravel
     }
 
     /**
-     * @param App $app
      * @return void
      */
-    function bootstrapConfig(App $app)
+    protected function bootstrapConfig()
     {
         if (!function_exists('config')) {
             /**
@@ -137,42 +150,54 @@ class Laravel
         }
 
         // This represents what would usually be the app configuration
-        $app->singleton('config', fn () => new Repository($this->config));
+        $this->app->singleton('config', fn () => new Repository($this->config));
     }
 
     /**
-     * @param App $app
      * @return void
      */
-    public function bootstrapFacades(App $app)
+    protected function bootstrapFacades()
     {
-        $app->bind('app', fn () => $app);
-
         // Set the facade application to make facades work
-        Facade::setFacadeApplication($app);
+        Facade::setFacadeApplication($this->app);
     }
 
     /**
-     * @param App $app
+     * @param string $provider
+     * @return ServiceProvider
+     */
+    protected function registerServiceProvider(string $provider): ServiceProvider
+    {
+        /** @var ServiceProvider $serviceProvider */
+        $serviceProvider = new $provider($this->app);
+        $serviceProvider->register();
+        return $serviceProvider;
+    }
+
+    /**
+     * @param ServiceProvider $provider
      * @return void
      */
-    public function bootstrapServiceProviders(App $app)
+    public function bootServiceProvider(ServiceProvider $provider)
     {
-        $registeredProviders = [];
-
-        foreach ($this->providers as $provider) {
-            /** @var ServiceProvider $serviceProvider */
-            $serviceProvider = new $provider($app);
-            $serviceProvider->register();
-            $registeredProviders[$provider] = $serviceProvider;
+        if (method_exists($provider, 'boot')) {
+            $this->app->call([$provider, 'boot']);
         }
 
-        foreach ($registeredProviders as $provider => $instance) {
-            if (method_exists($instance, 'boot')) {
-                $app->call([$instance, 'boot']);
-            }
+        $provider->callBootedCallbacks();
+    }
 
-            $instance->callBootedCallbacks();
+    /**
+     * @return void
+     */
+    public function bootstrapServiceProviders()
+    {
+        foreach ($this->providers as $key => $provider) {
+            $this->providers[$key] = $this->registerServiceProvider($provider);
+        }
+
+        foreach ($this->providers as $provider) {
+            $this->bootServiceProvider($provider);
         }
     }
 
@@ -182,22 +207,20 @@ class Laravel
     public function run(?Closure $callback = null): App
     {
         // This represents what would usually be the full Laravel app instance
-        $app = new Container;
+        $this->app = new Container;
+        $this->app['app'] = $this->app;
+        $this->app['files'] = new Filesystem;
+        $this->app[ApplicationContract::class] = $this->app;
 
-        $app['app'] = $app;
-        $app['files'] = new Filesystem;
-
-        $app[ApplicationContract::class] = $app;
-
-        $this->bootstrapFacades($app);
-        $this->bootstrapConfig($app);
-        $this->bootstrapServiceProviders($app);
+        $this->bootstrapFacades();
+        $this->bootstrapConfig();
+        $this->bootstrapServiceProviders();
 
         if ($callback) {
-            return $callback($app);
+            return $callback($this->app);
         }
 
-        return $app;
+        return $this->app;
     }
 
     /**
