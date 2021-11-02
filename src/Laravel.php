@@ -220,11 +220,28 @@ class Laravel
         }
     }
 
+    protected function mockMethods()
+    {
+        if (!function_exists('config_path')) {
+            /**
+             * Emulates Laravels config_path method
+             *
+             * @return string
+             */
+            function config_path($path)
+            {
+                return $path;
+            }
+        }
+    }
+
     /**
      * @return App The booted 'Laravel' app instance
      */
     public function boot(?Closure $callback = null): App
     {
+        $this->mockMethods();
+
         // This represents what would usually be the full Laravel app instance
         $this->app = new Container;
         $this->app['app'] = $this->app;
