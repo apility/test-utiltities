@@ -29,6 +29,7 @@ $app = Laravel::createApplication()
             ],
         ],
     ])
-    ->withProvider(Illuminate\Cache\CacheServiceProvider::class)
+    ->withFrameworkProvider(Illuminate\Cache\CacheServiceProvider::class)
+    ->withProvider(MyPlugin\Providers\MyPluginServiceProvider::class)
     ->boot();
 ```

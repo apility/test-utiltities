@@ -9,22 +9,15 @@
         }
     ],
     "require": {
-        "illuminate/support": "^8.68",
-        "illuminate/container": "^8.68",
-        "larapack/dd": "^1.1",
-        "vlucas/phpdotenv": "^5.3",
-        "illuminate/filesystem": "^8.68",
-        "illuminate/config": "^8.68"
+        "laravel/framework": "^8.0",
+        "vlucas/phpdotenv": "^5.3"
     },
     "autoload": {
-        "files": [
-            "src/helpers.php"
-        ],
         "psr-4": {
             "Apility\\Testing\\": "src/"
         }
     },
     "require-dev": {
-        "illuminate/cache": "^8.68"
+        "larapack/dd": "^1.1"
     }
 }
