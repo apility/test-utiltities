@@ -21,10 +21,12 @@ $app = Laravel::createApplication()
     ->withConfig([
         'cache' => [
             'default' => 'file',
-            'stores.file' => [
-                'driver' => 'file',
-                'path' => __DIR__ . '/cache',
-            ]
+            'stores' => [
+                'file' => [
+                    'driver' => 'file',
+                    'path' => __DIR__ . '/cache',
+                ],
+            ],
         ],
     ])
     ->withProvider(Illuminate\Cache\CacheServiceProvider::class)
