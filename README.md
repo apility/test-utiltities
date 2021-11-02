@@ -30,5 +30,5 @@ $app = Laravel::createApplication()
         ],
     ])
     ->withProvider(Illuminate\Cache\CacheServiceProvider::class)
-    ->run();
+    ->boot();
 ```
