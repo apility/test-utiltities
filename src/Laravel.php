@@ -223,7 +223,7 @@ class Laravel
     /**
      * @return App The booted 'Laravel' app instance
      */
-    public function run(?Closure $callback = null): App
+    public function boot(?Closure $callback = null): App
     {
         // This represents what would usually be the full Laravel app instance
         $this->app = new Container;
