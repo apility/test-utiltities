@@ -14,7 +14,6 @@ use Illuminate\Support\Facades\Facade;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Filesystem\Filesystem;
 use Illuminate\Contracts\Foundation\Application as ApplicationContract;
-use Illuminate\Support\Facades\Config;
 
 /**
  * Bootstraps a minimal Illuminate Container.
@@ -132,19 +131,6 @@ class Laravel
      */
     protected function bootstrapDotenv(?string $path = null)
     {
-        if (!function_exists('env')) {
-            /**
-             * Emulates Laravels env method
-             *
-             * @param string $key
-             * @return mixed
-             */
-            function env($key, $default = null)
-            {
-                return $_ENV[$key] ?? $default;
-            }
-        }
-
         // Load .env file
         $dotenv = Dotenv::createImmutable($path ?? $this->root);
         $dotenv->load();
@@ -155,19 +141,6 @@ class Laravel
      */
     protected function bootstrapConfig()
     {
-        if (!function_exists('config')) {
-            /**
-             * Emulates Laravels config method
-             *
-             * @param string $key
-             * @return mixed
-             */
-            function config($key, $default = null)
-            {
-                return Config::get($key, $default);
-            }
-        }
-
         // This represents what would usually be the app configuration
         $this->app->singleton('config', fn () => new Repository($this->config));
     }
@@ -220,28 +193,11 @@ class Laravel
         }
     }
 
-    protected function mockMethods()
-    {
-        if (!function_exists('config_path')) {
-            /**
-             * Emulates Laravels config_path method
-             *
-             * @return string
-             */
-            function config_path($path)
-            {
-                return $path;
-            }
-        }
-    }
-
     /**
      * @return App The booted 'Laravel' app instance
      */
     public function boot(?Closure $callback = null): App
     {
-        $this->mockMethods();
-
         // This represents what would usually be the full Laravel app instance
         $this->app = new Container;
         $this->app['app'] = $this->app;

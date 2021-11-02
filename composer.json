@@ -17,6 +17,9 @@
         "illuminate/config": "^8.68"
     },
     "autoload": {
+        "files": [
+            "src/helpers.php"
+        ],
         "psr-4": {
             "Apility\\Testing\\": "src/"
         }
