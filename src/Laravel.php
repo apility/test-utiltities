@@ -30,7 +30,7 @@ class Laravel
     protected $root;
 
     /** @var array */
-    protected $earlyProviders = [];
+    protected $frameworkProviders = [];
 
     /** @var array */
     protected $providers = [];
@@ -45,7 +45,7 @@ class Laravel
      */
     protected function __construct()
     {
-        $this->earlyProviders = [];
+        $this->frameworkProviders = [];
         $this->lateProviders = [];
         $this->config = [];
     }
@@ -74,9 +74,9 @@ class Laravel
      * @param string $provider
      * @return static
      */
-    public function withEarlyProvider(string $provider): self
+    public function withFrameworkProvider(string $provider): self
     {
-        $this->earlyProviders[] = $provider;
+        $this->frameworkProviders[] = $provider;
         return $this;
     }
 
@@ -84,10 +84,10 @@ class Laravel
      * @param array $providers
      * @return static
      */
-    public function withEarlyProviders(array $providers): self
+    public function withFrameworkProviders(array $providers): self
     {
         foreach ($providers as $provider) {
-            $this->withEarlyProvider($provider);
+            $this->withFrameworkProvider($provider);
         }
 
         return $this;
@@ -250,7 +250,7 @@ class Laravel
 
         $this->bootstrapFacades();
         $this->bootstrapConfig();
-        $this->bootstrapServiceProviders($this->earlyProviders);
+        $this->bootstrapServiceProviders($this->frameworkProviders);
         $this->bootstrapServiceProviders($this->lateProviders);
 
         if ($callback) {
