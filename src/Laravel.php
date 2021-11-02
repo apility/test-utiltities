@@ -46,7 +46,7 @@ class Laravel extends Container implements ApplicationContract
         static::$instance = $this;
         $this->booted = false;
         $this->frameworkProviders = [];
-        $this->lateProviders = [];
+        $this->providers = [];
         $this->config = [];
     }
 
@@ -223,7 +223,7 @@ class Laravel extends Container implements ApplicationContract
      */
     public function withProvider(string $provider): self
     {
-        $this->lateProviders[] = $provider;
+        $this->providers[] = $provider;
         return $this;
     }
 
@@ -330,7 +330,7 @@ class Laravel extends Container implements ApplicationContract
         $this->bootstrapFacades();
         $this->bootstrapConfig();
         $this->bootstrapServiceProviders($this->frameworkProviders);
-        $this->bootstrapServiceProviders($this->lateProviders);
+        $this->bootstrapServiceProviders($this->providers);
 
         $this->booted = true;
 
