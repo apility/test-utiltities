@@ -20,11 +20,8 @@ use Illuminate\Contracts\Foundation\Application as ApplicationContract;
  * This allows you to test your service providers without
  * bootstrapping the full Laravel framework.
  */
-class Laravel
+class Laravel extends Container implements ApplicationContract
 {
-    /** @var App */
-    protected $app;
-
     /** @var string */
     protected $root;
 
@@ -37,6 +34,8 @@ class Laravel
     /** @var array */
     protected $config = [];
 
+    protected $booted = false;
+
     /**
      * @param string|null $root
      * @param array $providers
@@ -44,9 +43,134 @@ class Laravel
      */
     protected function __construct()
     {
+        static::$instance = $this;
+        $this->booted = false;
         $this->frameworkProviders = [];
         $this->lateProviders = [];
         $this->config = [];
+    }
+
+    public function version()
+    {
+        return '8.x.x';
+    }
+
+    public function basePath($path = '')
+    {
+        return $this->root;
+    }
+
+    public function bootstrapPath($path = '')
+    {
+        return null;
+    }
+
+    public function configPath($path = '')
+    {
+        return null;
+    }
+
+    public function databasePath($path = '')
+    {
+        return null;
+    }
+
+    public function resourcePath($path = '')
+    {
+        return null;
+    }
+
+    public function storagePath()
+    {
+        return null;
+    }
+
+    public function environment(...$environments)
+    {
+        return null;
+    }
+
+    public function runningInConsole()
+    {
+        return false;
+    }
+
+    public function runningUnitTests()
+    {
+        return false;
+    }
+
+    public function isDownForMaintenance()
+    {
+        return false;
+    }
+
+    public function registerConfiguredProviders()
+    {
+    }
+
+    public function register($provider, $force = false)
+    {
+        $this->withProvider($provider);
+    }
+
+    public function registerDeferredProvider($provider, $service = null)
+    {
+        $this->withProvider($provider);
+    }
+
+    public function resolveProvider($provider)
+    {
+        return $this->make($provider);
+    }
+
+    public function booting($callback)
+    {
+    }
+
+    public function booted($callback)
+    {
+    }
+
+    public function bootstrapWith(array $bootstrappers)
+    {
+    }
+
+    public function getLocale()
+    {
+        return 'en';
+    }
+
+    public function getNamespace()
+    {
+        return 'App';
+    }
+
+    public function getProviders($provider)
+    {
+        return $this->make($provider);
+    }
+
+    public function hasBeenBootstrapped()
+    {
+        return $this->booted;
+    }
+
+    public function loadDeferredProviders()
+    {
+    }
+
+    public function setLocale($locale)
+    {
+    }
+
+    public function shouldSkipMiddleware()
+    {
+    }
+
+    public function terminate()
+    {
+        die();
     }
 
     /**
@@ -142,7 +266,7 @@ class Laravel
     protected function bootstrapConfig()
     {
         // This represents what would usually be the app configuration
-        $this->app->singleton('config', fn () => new Repository($this->config));
+        $this->singleton('config', fn () => new Repository($this->config));
     }
 
     /**
@@ -151,7 +275,7 @@ class Laravel
     protected function bootstrapFacades()
     {
         // Set the facade application to make facades work
-        Facade::setFacadeApplication($this->app);
+        Facade::setFacadeApplication($this);
     }
 
     /**
@@ -161,7 +285,7 @@ class Laravel
     protected function registerServiceProvider(string $provider): ServiceProvider
     {
         /** @var ServiceProvider $serviceProvider */
-        $serviceProvider = new $provider($this->app);
+        $serviceProvider = new $provider($this);
         $serviceProvider->register();
         return $serviceProvider;
     }
@@ -173,7 +297,7 @@ class Laravel
     protected function bootServiceProvider(ServiceProvider $provider)
     {
         if (method_exists($provider, 'boot')) {
-            $this->app->call([$provider, 'boot']);
+            $this->call([$provider, 'boot']);
         }
 
         $provider->callBootedCallbacks();
@@ -199,21 +323,22 @@ class Laravel
     public function boot(?Closure $callback = null): App
     {
         // This represents what would usually be the full Laravel app instance
-        $this->app = new Container;
-        $this->app['app'] = $this->app;
-        $this->app['files'] = new Filesystem;
-        $this->app[ApplicationContract::class] = $this->app;
+        $this['app'] = $this;
+        $this['files'] = new Filesystem;
+        $this[ApplicationContract::class] = $this;
 
         $this->bootstrapFacades();
         $this->bootstrapConfig();
         $this->bootstrapServiceProviders($this->frameworkProviders);
         $this->bootstrapServiceProviders($this->lateProviders);
 
+        $this->booted = true;
+
         if ($callback) {
-            return $callback($this->app);
+            return $callback($this);
         }
 
-        return $this->app;
+        return $this;
     }
 
     /**
