@@ -155,6 +155,11 @@ class Laravel extends Container implements ApplicationContract
     {
         return $this->booted;
     }
+    
+    public function isBooted()
+    {
+        return $this->booted;
+    }
 
     public function loadDeferredProviders()
     {
